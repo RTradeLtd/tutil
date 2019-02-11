@@ -14,7 +14,7 @@ testenv:
 
 .PHONY: stop-testenv
 stop-testenv:
-	( cd testenv ; make stop-testenv )
+	( cd testenv ; make clean )
 
 .PHONY: test
 test: vendor

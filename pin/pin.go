@@ -51,20 +51,12 @@ type ReminderMessage struct {
 // expire, then and only then is the data removed from our system.
 func (u *Util) GetPinsToRemind(days int) ([]ReminderMessage, error) {
 	uploads := []models.Upload{}
-
-	// get the number of hours multiplied by the number of days
-	hours := days * 24
-	// turn into a time.Time type
-	tt := time.Duration(hours) * time.Hour
 	// calculate the time window
-	maxGCDate := time.Now().Add(tt)
-	// grab current time
-	currentTime := time.Now()
-
+	maxGCDate := time.Now().AddDate(0, 0, days)
 	// find all uploads within the garbage collect period
-	if err := u.UP.DB.Where(
-		"garbage_collect_date < ? AND garbage_collect_date > ?",
-		maxGCDate, currentTime,
+	if err := u.UP.DB.Model(&models.Upload{}).Where(
+		"garbage_collect_date BETWEEN ? AND ?",
+		time.Now(), maxGCDate,
 	).Find(&uploads).Error; err != nil {
 		return nil, err
 	}
@@ -82,9 +74,13 @@ func (u *Util) GetPinsToRemind(days int) ([]ReminderMessage, error) {
 		if err != nil {
 			return nil, err
 		}
+		var hashFormatted string
+		for _, h := range v {
+			hashFormatted = hashFormatted + "," + h
+		}
 		message := fmt.Sprintf(
 			"The following hashes you have uploaded will be removed from the system within the next %v days, please extend your pin soon or they will be removed <br>%s",
-			days, v,
+			days, hashFormatted,
 		)
 		reminders = append(reminders, ReminderMessage{
 			EmailAddress: user.EmailAddress,
