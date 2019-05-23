@@ -3,13 +3,15 @@ package main
 import (
 	"context"
 	"flag"
+	"log"
 	"os"
 
 	"github.com/RTradeLtd/gorm"
 
-	"github.com/RTradeLtd/cmd"
-	"github.com/RTradeLtd/config"
-	"github.com/RTradeLtd/database"
+	"github.com/RTradeLtd/cmd/v2"
+	"github.com/RTradeLtd/config/v2"
+	"github.com/RTradeLtd/database/v2"
+	"github.com/RTradeLtd/database/v2/models"
 )
 
 // Version denotes the tag of this build
@@ -32,6 +34,7 @@ var (
 	emailRecipient *string
 	recipientName  *string
 	uploadType     *string
+	user           *string
 	// bucket flags
 	bucketLocation *string
 )
@@ -63,20 +66,39 @@ func baseFlagSet() *flag.FlagSet {
 	recipientName = f.String("recipient-name", "",
 		"email recipient name")
 
+	user = f.String("user", "", "user to operate commands against")
+
 	return f
 }
 
-func newDB(cfg config.TemporalConfig, noSSL bool) (*gorm.DB, error) {
-	return database.OpenDBConnection(database.DBOptions{
-		User:           cfg.Database.Username,
-		Password:       cfg.Database.Password,
-		Address:        cfg.Database.URL,
-		Port:           cfg.Database.Port,
+func newDB(cfg *config.TemporalConfig, noSSL bool) (*gorm.DB, error) {
+	dbm, err := database.New(cfg, database.Options{
 		SSLModeDisable: noSSL,
 	})
+	if err != nil {
+		return nil, err
+	}
+	return dbm.DB, nil
 }
 
-var commands = map[string]cmd.Cmd{}
+var commands = map[string]cmd.Cmd{
+	"reset": {
+		Blurb: "reset user account tier",
+		Action: func(cfg config.TemporalConfig, flags map[string]string) {
+			if *user == "" {
+				log.Fatal("user flag not specified")
+			}
+			db, err := newDB(&cfg, *dbNoSSL)
+			if err != nil {
+				log.Fatal(err)
+			}
+			usage := models.NewUsageManager(db)
+			if err := usage.UpdateTier(*user, models.Free); err != nil {
+				log.Fatal(err)
+			}
+		},
+	},
+}
 
 func main() {
 	if Version == "" {
