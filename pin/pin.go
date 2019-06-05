@@ -90,6 +90,13 @@ func (u *Util) ExpirePins(uploads []models.Upload) error {
 			)
 			continue
 		}
+		if err := u.UP.DB.Delete(upload).Error; err != nil {
+			fmt.Printf(
+				"failed to remove upload from database for id %v, user %s. error: %s",
+				upload.ID, user, err.Error(),
+			)
+			continue
+		}
 	}
 	return nil
 }
