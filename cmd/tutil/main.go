@@ -3,15 +3,17 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
-
-	"github.com/RTradeLtd/gorm"
 
 	"github.com/RTradeLtd/cmd/v2"
 	"github.com/RTradeLtd/config/v2"
 	"github.com/RTradeLtd/database/v2"
 	"github.com/RTradeLtd/database/v2/models"
+	"github.com/RTradeLtd/gorm"
+	"github.com/RTradeLtd/tutil/pin"
 )
 
 // Version denotes the tag of this build
@@ -94,6 +96,38 @@ var commands = map[string]cmd.Cmd{
 			}
 			usage := models.NewUsageManager(db)
 			if err := usage.UpdateTier(*user, models.Free); err != nil {
+				log.Fatal(err)
+			}
+		},
+	},
+	"garbage-collect": {
+		Blurb:       "run a pin garbage collection",
+		Description: "parse uploads and collect expired pins",
+		Action: func(cfg config.TemporalConfig, flags map[string]string) {
+			db, err := newDB(&cfg, *dbNoSSL)
+			if err != nil {
+				log.Fatal(err)
+			}
+			pinUtil, err := pin.NewPinUtil(db, &cfg)
+			if err != nil {
+				log.Fatal(err)
+			}
+			expiredPins, err := pinUtil.GetExpiredPins()
+			if err != nil {
+				log.Fatal(err)
+			}
+			if err := pinUtil.ExpirePins(expiredPins); err != nil {
+				log.Fatal(err)
+			}
+			var formattedOutput string
+			for _, pin := range expiredPins {
+				formattedOutput = fmt.Sprintf("%s\n%+v\n", formattedOutput, pin)
+			}
+			if err := ioutil.WriteFile(
+				"collected_garbage.txt",
+				[]byte(formattedOutput),
+				os.FileMode(0640),
+			); err != nil {
 				log.Fatal(err)
 			}
 		},
