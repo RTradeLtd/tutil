@@ -3,6 +3,7 @@ package pin
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/RTradeLtd/config/v2"
 	"github.com/RTradeLtd/database/v2/models"
@@ -29,6 +30,53 @@ func TestMigration(t *testing.T) {
 		t.Fatal(err)
 	}
 	if err := db.AutoMigrate(&models.Usage{}).Error; err != nil {
+		t.Fatal(err)
+	}
+}
+
+func Test_GetExpiredPins(t *testing.T) {
+	// load configuration
+	cfg, err := config.LoadConfig("../testenv/config.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// open db
+	db, err := openDatabaseConnection(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// initialize our pin utility client
+	util, err := NewPinUtil(db, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ue, err := util.US.NewUsageEntry("testuser", models.Paid); err != nil {
+		t.Fatal(err)
+	} else {
+		defer util.US.DB.Unscoped().Delete(ue)
+	}
+	stats, err := util.ipfs.Stat(testCID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := util.US.UpdateDataUsage("testuser", uint64(stats.CumulativeSize)); err != nil {
+		t.Fatal(err)
+	}
+	upload, err := util.UP.NewUpload(testCID, "pin", models.UploadOptions{HoldTimeInMonths: 1, Username: "testuser"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer util.UP.DB.Unscoped().Delete(upload)
+	upload.GarbageCollectDate = time.Now()
+	if err := util.UP.DB.Save(upload).Error; err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(time.Second * 1)
+	uploads, err := util.GetExpiredPins()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := util.ExpirePins(uploads); err != nil {
 		t.Fatal(err)
 	}
 }

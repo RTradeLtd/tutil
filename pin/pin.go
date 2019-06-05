@@ -1,12 +1,14 @@
 package pin
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/RTradeLtd/config/v2"
 	"github.com/RTradeLtd/database/v2/models"
 	"github.com/RTradeLtd/gorm"
+	"github.com/RTradeLtd/rtfs/v2"
 	"github.com/RTradeLtd/tutil/mail"
 )
 
@@ -14,6 +16,8 @@ import (
 type Util struct {
 	UM   *models.UserManager
 	UP   *models.UploadManager
+	US   *models.UsageManager
+	ipfs rtfs.Manager
 	Mail *mail.Manager
 }
 
@@ -23,9 +27,18 @@ func NewPinUtil(db *gorm.DB, cfg *config.TemporalConfig) (*Util, error) {
 	if err != nil {
 		return nil, err
 	}
+	ipfs, err := rtfs.NewManager(
+		cfg.IPFS.APIConnection.Host+":"+cfg.IPFS.APIConnection.Port,
+		"", time.Hour,
+	)
+	if err != nil {
+		return nil, err
+	}
 	return &Util{
 		UM:   models.NewUserManager(db),
 		UP:   models.NewUploadManager(db),
+		US:   models.NewUsageManager(db),
+		ipfs: ipfs,
 		Mail: manager,
 	}, nil
 }
@@ -36,6 +49,49 @@ type ReminderMessage struct {
 	EmailAddress string
 	UserName     string
 	Message      string
+}
+
+// GetExpiredPins is used to retrieve all uploads/pins
+// that are currently expired and need to be removed
+func (u *Util) GetExpiredPins() ([]models.Upload, error) {
+	uploads := []models.Upload{}
+	currentDate := time.Now()
+	if err := u.UP.DB.Model(&models.Upload{}).Where(
+		"garbage_collect_date < ?", currentDate,
+	).Find(&uploads).Error; err != nil {
+		return nil, err
+	}
+	if len(uploads) == 0 {
+		return nil, errors.New("no expired pins")
+	}
+	return uploads, nil
+}
+
+// ExpirePins is used to remove all expired pins from
+// a users given uploads, as well as reducing their data usage
+func (u *Util) ExpirePins(uploads []models.Upload) error {
+	for _, upload := range uploads {
+		// get variables needed for filtration
+		hash := upload.Hash
+		user := upload.UserName
+		stats, err := u.ipfs.Stat(hash)
+		if err != nil {
+			fmt.Printf(
+				"failed to get object stats for hash %s, user %s. error: %s",
+				hash, user, err.Error(),
+			)
+			continue
+		}
+		sizeToReduce := uint64(stats.CumulativeSize)
+		if err := u.US.ReduceDataUsage(user, sizeToReduce); err != nil {
+			fmt.Printf(
+				"failed to reduce data usage for hash %s, user %s. error: %s",
+				hash, user, err.Error(),
+			)
+			continue
+		}
+	}
+	return nil
 }
 
 // GetPinsToRemind is used to get pins that are close to their gc date
