@@ -12,7 +12,7 @@
 [[projects]]
   branch = "versioned"
   digest = "1:cbfe83c6fd0098e4bb003e968c7ec3d5526505287698a972b11c0caa4abe4935"
-  name = "github.com/RTradeLtd/gorm"
+  name = "github.com/jinzhu/gorm"
   packages = [
     ".",
     "dialects/postgres",
@@ -245,8 +245,8 @@
   analyzer-version = 1
   input-imports = [
     "github.com/RTradeLtd/config",
-    "github.com/RTradeLtd/gorm",
-    "github.com/RTradeLtd/gorm/dialects/postgres",
+    "github.com/jinzhu/gorm",
+    "github.com/jinzhu/gorm/dialects/postgres",
     "github.com/c2h5oh/datasize",
     "github.com/ipfs/go-ipfs-addr",
     "github.com/lib/pq",
