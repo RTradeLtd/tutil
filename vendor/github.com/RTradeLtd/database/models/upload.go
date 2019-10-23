@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/RTradeLtd/database/utils"
-	"github.com/RTradeLtd/gorm"
+	"github.com/jinzhu/gorm"
 )
 
 const (
