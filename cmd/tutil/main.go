@@ -12,8 +12,8 @@ import (
 	"github.com/RTradeLtd/config/v2"
 	"github.com/RTradeLtd/database/v2"
 	"github.com/RTradeLtd/database/v2/models"
-	"github.com/jinzhu/gorm"
 	"github.com/RTradeLtd/tutil/pin"
+	"github.com/jinzhu/gorm"
 )
 
 // Version denotes the tag of this build
@@ -39,6 +39,7 @@ var (
 	user           *string
 	// bucket flags
 	bucketLocation *string
+	accountTier    *string
 )
 
 func baseFlagSet() *flag.FlagSet {
@@ -70,6 +71,7 @@ func baseFlagSet() *flag.FlagSet {
 
 	user = f.String("user", "", "user to operate commands against")
 
+	accountTier = f.String("account.tier", "", "accoutn tier to apply")
 	return f
 }
 
@@ -158,6 +160,29 @@ var commands = map[string]cmd.Cmd{
 				os.FileMode(0640),
 			); err != nil {
 				log.Fatal(err)
+			}
+		},
+	},
+	"upgrade-tier": {
+		Blurb:       "upgrade account tier",
+		Description: "used to perform an account tier upgrade",
+		Action: func(cfg config.TemporalConfig, flags map[string]string) {
+			if *user == "" {
+				log.Fatal("user flag is empty")
+			}
+			db, err := newDB(&cfg, *dbNoSSL)
+			if err != nil {
+				log.Fatal(err)
+			}
+			usg := models.NewUsageManager(db)
+			switch models.DataUsageTier(*accountTier).PricePerGB() {
+			case 0.07, 0.05, 9999:
+				break
+			default:
+				log.Fatal("invalid account tier")
+			}
+			if err := usg.UpdateTier(*user, models.DataUsageTier(*accountTier)); err != nil {
+				log.Fatal("failed to upgrade tier", err)
 			}
 		},
 	},
