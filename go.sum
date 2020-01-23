@@ -19,17 +19,13 @@ github.com/RTradeLtd/crypto v2.0.0+incompatible h1:3+UEo0upD0p3A+7yLJ14UJpT6aZEh
 github.com/RTradeLtd/crypto v2.0.0+incompatible/go.mod h1:xhKwg748pxs2as6Ts65TiBBFrYzntioTqBIZEa1BUio=
 github.com/RTradeLtd/crypto/v2 v2.1.1 h1:P59zYkkNkl6K1KiTRvW52AYwLvwmtzuzZ9+AjLWmKsU=
 github.com/RTradeLtd/crypto/v2 v2.1.1/go.mod h1:saIQ67Btn4JWsOdzjn9U6Dl+aZlg+YKgg4RsQKXxjf4=
-github.com/RTradeLtd/database v2.2.0+incompatible h1:/gkNEaMlbLZq6jhXBx6ImhXaIalH9OzbSrH5eMsO9rQ=
-github.com/RTradeLtd/database v2.2.0+incompatible/go.mod h1:LJxu9aB7DphTM74tWtRq0t30iPTkscnxuM683GuMEYY=
-github.com/RTradeLtd/database/v2 v2.4.2 h1:ILokR44JKUeSgPrqcmUyfMLTKEJCD81pw596aFjXagU=
-github.com/RTradeLtd/database/v2 v2.4.2/go.mod h1:7t4vOzLgmvIz9qnZC0UY0cwdbpkVIhE6I9BaCKV4/us=
+github.com/RTradeLtd/database/v2 v2.7.1-rc1 h1:H42TEdR/0jmK+1bLtJ9OTzNOHEmPpmtnyh0lp6r7b34=
+github.com/RTradeLtd/database/v2 v2.7.1-rc1/go.mod h1:7t4vOzLgmvIz9qnZC0UY0cwdbpkVIhE6I9BaCKV4/us=
 github.com/RTradeLtd/entropy-mnemonics v0.0.0-20170316012907-7b01a644a636 h1:i/+1LBA+YMfD1m9UnQP52A7S6y2U3C0xpMBehPkDRug=
 github.com/RTradeLtd/entropy-mnemonics v0.0.0-20170316012907-7b01a644a636/go.mod h1:zpzHNRdCMCG9PM9QO5jVSldXCRMJ7lY42yJ5TEe//7M=
 github.com/RTradeLtd/go-ipfs-api v0.0.0-20190522213636-8e3700e602fd/go.mod h1:ipDfy60LjYDddlX/zluSwRVtfGR0EB1HqADazGNMUmE=
 github.com/RTradeLtd/go-ipfs-api v0.0.0-20190523020607-76503b15fe41 h1:4FlwYWwqkeTBQlGzoxGyzFt3IUEY9XnLW+2VKmoSUxY=
 github.com/RTradeLtd/go-ipfs-api v0.0.0-20190523020607-76503b15fe41/go.mod h1:ipDfy60LjYDddlX/zluSwRVtfGR0EB1HqADazGNMUmE=
-github.com/RTradeLtd/gorm v2.0.0+incompatible h1:vShqNEwDLDXSTVqpN91KXlgrJToNklXzUoblBRkh+KA=
-github.com/RTradeLtd/gorm v2.0.0+incompatible/go.mod h1:FaVJ0C0yhoQGrKSsMaTl1p05GfuV+63S+P18+H9ETAg=
 github.com/RTradeLtd/rtfs v2.0.1+incompatible h1:E5mG0RCFYnWjWf2pAb+k+eR2tZ3nlqCRenMhCKMKLQQ=
 github.com/RTradeLtd/rtfs v2.0.1+incompatible/go.mod h1:6ASGKwTU8Bf0o3YOGzXsU2oVmjX36GCvleKGEScXCe8=
 github.com/RTradeLtd/rtfs/v2 v2.1.2 h1:4wam5uStNHUqN7QBTjanKNGqQZHfK0wrnv7Z/zFD/t8=
@@ -97,7 +93,6 @@ github.com/go-logfmt/logfmt v0.3.0/go.mod h1:Qt1PoO58o5twSAckw1HlFXLmHsOX5/0LbT9
 github.com/go-sql-driver/mysql v1.4.1 h1:g24URVg0OFbNUTx9qqY1IRZ9D9z3iPyi5zKhQZpNwpA=
 github.com/go-sql-driver/mysql v1.4.1/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
 github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/melR3HDY=
-github.com/gofrs/uuid v3.2.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/gogo/protobuf v1.2.0/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/gogo/protobuf v1.2.1 h1:/s5zKNz0uPFCZ5hddgPdo2TK2TVrUNMn0OOX8/aZMTE=
