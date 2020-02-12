@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 
 	"github.com/RTradeLtd/cmd/v2"
 	"github.com/RTradeLtd/config/v2"
@@ -41,6 +42,7 @@ var (
 	bucketLocation *string
 	accountTier    *string
 	credits        *float64
+	gcOutFile      *string
 )
 
 func baseFlagSet() *flag.FlagSet {
@@ -75,6 +77,11 @@ func baseFlagSet() *flag.FlagSet {
 	accountTier = f.String("account.tier", "", "accoutn tier to apply")
 
 	credits = f.Float64("credits", 0, "the amount of credits to add")
+
+	gcOutFile = f.String("gc.out.file", fmt.Sprintf(
+		"collected_garbage-%v.txt", time.Now().UnixNano()),
+		"the destination file to store garbage collected records in",
+	)
 	return f
 }
 
@@ -129,7 +136,7 @@ var commands = map[string]cmd.Cmd{
 				formattedOutput = fmt.Sprintf("%s\n%+v\n", formattedOutput, pin)
 			}
 			if err := ioutil.WriteFile(
-				"collected_garbage.txt",
+				*gcOutFile,
 				[]byte(formattedOutput),
 				os.FileMode(0640),
 			); err != nil {
@@ -158,7 +165,7 @@ var commands = map[string]cmd.Cmd{
 				formattedOutput = fmt.Sprintf("%s\n%+v\n", formattedOutput, pin)
 			}
 			if err := ioutil.WriteFile(
-				"collected_garbage.txt",
+				*gcOutFile,
 				[]byte(formattedOutput),
 				os.FileMode(0640),
 			); err != nil {
