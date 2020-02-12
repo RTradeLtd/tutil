@@ -40,6 +40,7 @@ var (
 	// bucket flags
 	bucketLocation *string
 	accountTier    *string
+	credits        *float64
 )
 
 func baseFlagSet() *flag.FlagSet {
@@ -72,6 +73,8 @@ func baseFlagSet() *flag.FlagSet {
 	user = f.String("user", "", "user to operate commands against")
 
 	accountTier = f.String("account.tier", "", "accoutn tier to apply")
+
+	credits = f.Float64("credits", 0, "the amount of credits to add")
 	return f
 }
 
@@ -184,6 +187,28 @@ var commands = map[string]cmd.Cmd{
 			if err := usg.UpdateTier(*user, models.DataUsageTier(*accountTier)); err != nil {
 				log.Fatal("failed to upgrade tier", err)
 			}
+		},
+	},
+	"add-credits": {
+		Blurb:       "add credits to an account",
+		Description: "used to increase the credits balance of an account",
+		Action: func(cfg config.TemporalConfig, flags map[string]string) {
+			if *user == "" {
+				log.Fatal("user flag is empty")
+			}
+			if *credits == 0 {
+				log.Fatal("credits flag is empty")
+			}
+			db, err := newDB(&cfg, *dbNoSSL)
+			if err != nil {
+				log.Fatal(err)
+			}
+			um := models.NewUserManager(db)
+			_, err = um.AddCredits(*user, *credits)
+			if err != nil {
+				log.Fatal(err)
+			}
+			log.Println("credits granted")
 		},
 	},
 }
