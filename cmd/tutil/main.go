@@ -43,6 +43,8 @@ var (
 	accountTier    *string
 	credits        *float64
 	gcOutFile      *string
+
+	notifyDays *int
 )
 
 func baseFlagSet() *flag.FlagSet {
@@ -82,6 +84,8 @@ func baseFlagSet() *flag.FlagSet {
 		"collected_garbage-%v.txt", time.Now().UnixNano()),
 		"the destination file to store garbage collected records in",
 	)
+
+	notifyDays = f.Int("notify.days", 7, "the number of days before we will warn about an expired pin")
 	return f
 }
 
@@ -110,6 +114,46 @@ var commands = map[string]cmd.Cmd{
 			if err := usage.UpdateTier(*user, models.Free); err != nil {
 				log.Fatal(err)
 			}
+		},
+	},
+	"pin-notifiers": {
+		Blurb:       "pin expiration notifier",
+		Description: "warns users when their pins are reaching their expiration date",
+		Action: func(cfg config.TemporalConfig, flags map[string]string) {
+			db, err := newDB(&cfg, *dbNoSSL)
+			if err != nil {
+				log.Fatal(err)
+			}
+			pinUtil, err := pin.NewPinUtil(db, &cfg)
+			if err != nil {
+				log.Fatal(err)
+			}
+			messages, err := pinUtil.GetPinsToRemind(*notifyDays)
+			if err != nil {
+				log.Fatal(err)
+			}
+			for _, message := range messages {
+				// TODO(bonedaddy): remove this when ready to be used
+				// this is simply here for testing to prevent spamming our users
+				if message.EmailAddress != "postables@rtradetechnologies.com" {
+					continue
+				}
+				_, err := pinUtil.Mail.SendEmail(
+					"Temporal: You Have Pins About To Expire",
+					message.Message,
+					"text/html",
+					message.UserName,
+					message.EmailAddress,
+				)
+				if err != nil {
+					log.Printf(
+						"error: failed to send message to %s with err %s",
+						message.EmailAddress, err.Error(),
+					)
+					continue
+				}
+			}
+
 		},
 	},
 	"garbage-collect": {
