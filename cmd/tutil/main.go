@@ -133,11 +133,6 @@ var commands = map[string]cmd.Cmd{
 				log.Fatal(err)
 			}
 			for _, message := range messages {
-				// TODO(bonedaddy): remove this when ready to be used
-				// this is simply here for testing to prevent spamming our users
-				if message.EmailAddress != "postables@rtradetechnologies.com" {
-					continue
-				}
 				_, err := pinUtil.Mail.SendEmail(
 					"Temporal: You Have Pins About To Expire",
 					message.Message,
