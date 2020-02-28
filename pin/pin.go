@@ -7,9 +7,9 @@ import (
 
 	"github.com/RTradeLtd/config/v2"
 	"github.com/RTradeLtd/database/v2/models"
-	"github.com/jinzhu/gorm"
 	"github.com/RTradeLtd/rtfs/v2"
 	"github.com/RTradeLtd/tutil/mail"
+	"github.com/jinzhu/gorm"
 )
 
 // Util is our pin related utility class
@@ -137,10 +137,17 @@ func (u *Util) GetPinsToRemind(days int) ([]ReminderMessage, error) {
 		if err != nil {
 			return nil, err
 		}
-		var hashFormatted string
-		for _, h := range v {
-			hashFormatted = hashFormatted + "," + h
+		// skip users that don't have their emails enabled
+		if !user.EmailEnabled {
+			continue
 		}
+		var hashFormatted = `
+		<ul>
+		`
+		for _, h := range v {
+			hashFormatted = hashFormatted + fmt.Sprintf("<li>%s</li>", h)
+		}
+		hashFormatted = hashFormatted + "</ul>"
 		message := fmt.Sprintf(
 			"The following hashes you have uploaded will be removed from the system within the next %v days, please extend your pin soon or they will be removed <br>%s",
 			days, hashFormatted,
