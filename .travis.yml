@@ -18,7 +18,7 @@ before_script:
 - make testenv
 
 script:
-- make verifiers
+# - make verifiers
 - go test -race -short -coverprofile=coverage.txt ./...
 
 after_success:
