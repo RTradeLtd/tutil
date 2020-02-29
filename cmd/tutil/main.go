@@ -44,7 +44,8 @@ var (
 	credits        *float64
 	gcOutFile      *string
 
-	notifyDays *int
+	notifyDays      *int
+	expireFrequency *time.Duration
 )
 
 func baseFlagSet() *flag.FlagSet {
@@ -84,7 +85,7 @@ func baseFlagSet() *flag.FlagSet {
 		"collected_garbage-%v.txt", time.Now().UnixNano()),
 		"the destination file to store garbage collected records in",
 	)
-
+	expireFrequency = flag.Duration("pin.expire.frequency", time.Hour, "enables controlling the frequency of pin expiration")
 	notifyDays = f.Int("notify.days", 7, "the number of days before we will warn about an expired pin")
 	return f
 }
@@ -114,6 +115,27 @@ var commands = map[string]cmd.Cmd{
 			if err := usage.UpdateTier(*user, models.Free); err != nil {
 				log.Fatal(err)
 			}
+		},
+	},
+	"pin-expire-service": {
+		Blurb:       "runs pin garbage collection service",
+		Description: "regularly removes pins from the system, and saves the removes ones to disk. Note that this doesn't actually remove it from our servers",
+		Action: func(cfg config.TemporalConfig, flags map[string]string) {
+			db, err := newDB(&cfg, *dbNoSSL)
+			if err != nil {
+				log.Fatal(err)
+			}
+			pinUtil, err := pin.NewPinUtil(db, &cfg)
+			if err != nil {
+				log.Fatal(err)
+			}
+			totalRemoved, err := pinUtil.PinExpirationService(
+				ctx, *expireFrequency,
+			)
+			if err != nil {
+				log.Fatal(err)
+			}
+			log.Printf("removed %v pins", totalRemoved)
 		},
 	},
 	"pin-notifiers": {
