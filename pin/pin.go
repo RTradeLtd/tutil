@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"time"
 
@@ -166,10 +167,11 @@ func (u *Util) GetPinsToRemind(days int) ([]ReminderMessage, error) {
 
 // PinExpirationService used to run at fixed intervals
 // automatically expiring pins and removing them from our system.
-func (u *Util) PinExpirationService(ctx context.Context, frequency time.Duration) error {
+func (u *Util) PinExpirationService(ctx context.Context, frequency time.Duration) (int, error) {
 	var (
-		ticker = time.NewTicker(frequency)
-		count  = 0
+		ticker       = time.NewTicker(frequency)
+		runs         = 0
+		totalRemoved = 0
 	)
 	defer ticker.Stop()
 	for {
@@ -177,10 +179,13 @@ func (u *Util) PinExpirationService(ctx context.Context, frequency time.Duration
 		case <-ticker.C:
 			expired, err := u.GetExpiredPins()
 			if err != nil {
-				return err
+				log.Println("failed to get expired pins: ", err.Error())
+				continue
 			}
+			totalRemoved += len(expired)
 			if err := u.ExpirePins(expired); err != nil {
-				return err
+				log.Println("failed to expire pins: ", err.Error())
+				continue
 			}
 			var formattedOutput string
 			for _, pin := range expired {
@@ -188,16 +193,16 @@ func (u *Util) PinExpirationService(ctx context.Context, frequency time.Duration
 			}
 			if err := ioutil.WriteFile(
 				fmt.Sprintf(
-					"collected_garbage-%v-run-%v.txt", time.Now().UnixNano(), count,
+					"collected_garbage-%v-run-%v.txt", time.Now().UnixNano(), runs,
 				),
 				[]byte(formattedOutput),
 				os.FileMode(0640),
 			); err != nil {
-				return err
+				return totalRemoved, err
 			}
-			count++
+			runs++
 		case <-ctx.Done():
-			return nil
+			return totalRemoved, nil
 		}
 	}
 }

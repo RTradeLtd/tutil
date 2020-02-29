@@ -75,8 +75,10 @@ func TestPinExpirationService(t *testing.T) {
 	time.Sleep(time.Second * 2)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-	if err := util.PinExpirationService(ctx, time.Second); err != nil {
+	if count, err := util.PinExpirationService(ctx, time.Second); err != nil {
 		t.Fatal(err)
+	} else if count == 0 {
+		t.Fatal("no pins removed")
 	}
 }
 func Test_GetExpiredPins(t *testing.T) {
