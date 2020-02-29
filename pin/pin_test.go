@@ -72,6 +72,7 @@ func TestPinExpirationService(t *testing.T) {
 	if err := util.UP.DB.Save(upload).Error; err != nil {
 		t.Fatal(err)
 	}
+	time.Sleep(time.Second * 2)
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 	if err := util.PinExpirationService(ctx, time.Second); err != nil {
