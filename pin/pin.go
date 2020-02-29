@@ -1,8 +1,11 @@
 package pin
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/RTradeLtd/config/v2"
@@ -159,4 +162,42 @@ func (u *Util) GetPinsToRemind(days int) ([]ReminderMessage, error) {
 		})
 	}
 	return reminders, nil
+}
+
+// PinExpirationService used to run at fixed intervals
+// automatically expiring pins and removing them from our system.
+func (u *Util) PinExpirationService(ctx context.Context, frequency time.Duration) error {
+	var (
+		ticker = time.NewTicker(frequency)
+		count  = 0
+	)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			expired, err := u.GetExpiredPins()
+			if err != nil {
+				return err
+			}
+			if err := u.ExpirePins(expired); err != nil {
+				return err
+			}
+			var formattedOutput string
+			for _, pin := range expired {
+				formattedOutput = fmt.Sprintf("%s\n%+v\n", formattedOutput, pin)
+			}
+			if err := ioutil.WriteFile(
+				fmt.Sprintf(
+					"collected_garbage-%v-run-%v.txt", time.Now().UnixNano(), count,
+				),
+				[]byte(formattedOutput),
+				os.FileMode(0640),
+			); err != nil {
+				return err
+			}
+			count++
+		case <-ctx.Done():
+			return nil
+		}
+	}
 }

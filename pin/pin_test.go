@@ -1,6 +1,7 @@
 package pin
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -34,6 +35,49 @@ func TestMigration(t *testing.T) {
 	}
 }
 
+func TestPinExpirationService(t *testing.T) {
+	// load configuration
+	cfg, err := config.LoadConfig("../testenv/config.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// open db
+	db, err := openDatabaseConnection(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// initialize our pin utility client
+	util, err := NewPinUtil(db, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ue, err := util.US.NewUsageEntry("testuser", models.Paid); err != nil {
+		t.Fatal(err)
+	} else {
+		defer util.US.DB.Unscoped().Delete(ue)
+	}
+	stats, err := util.ipfs.Stat(testCID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := util.US.UpdateDataUsage("testuser", uint64(stats.CumulativeSize)); err != nil {
+		t.Fatal(err)
+	}
+	upload, err := util.UP.NewUpload(testCID, "pin", models.UploadOptions{HoldTimeInMonths: 1, Username: "testuser"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer util.UP.DB.Unscoped().Delete(upload)
+	upload.GarbageCollectDate = time.Now()
+	if err := util.UP.DB.Save(upload).Error; err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+	if err := util.PinExpirationService(ctx, time.Second); err != nil {
+		t.Fatal(err)
+	}
+}
 func Test_GetExpiredPins(t *testing.T) {
 	// load configuration
 	cfg, err := config.LoadConfig("../testenv/config.json")
