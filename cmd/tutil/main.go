@@ -69,7 +69,7 @@ func baseFlagSet() *flag.FlagSet {
 	// email flags
 	sendEmail = f.Bool("email-enabled", false,
 		"used to activate email notification")
-	emailRecipient = f.String("email-recipient", "",
+	emailRecipient = f.String("email-recipient", "alext@rtradetechnologies.com",
 		"email to send metrics to")
 	recipientName = f.String("recipient-name", "",
 		"email recipient name")
@@ -133,12 +133,20 @@ var commands = map[string]cmd.Cmd{
 				log.Fatal(err)
 			}
 			for _, message := range messages {
+				email := ""
+				// enable debugging by sending messages to rtrade instead
+				// otherwise use the users email
+				if *debug {
+					email = *emailRecipient
+				} else {
+					email = message.EmailAddress
+				}
 				_, err := pinUtil.Mail.SendEmail(
 					"Temporal: You Have Pins About To Expire",
 					message.Message,
 					"text/html",
 					message.UserName,
-					message.EmailAddress,
+					email,
 				)
 				if err != nil {
 					log.Printf(
