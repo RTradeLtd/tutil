@@ -182,11 +182,11 @@ func (u *Util) PinExpirationService(ctx context.Context, frequency time.Duration
 				log.Println("failed to get expired pins: ", err.Error())
 				continue
 			}
-			totalRemoved += len(expired)
 			if err := u.ExpirePins(expired); err != nil {
 				log.Println("failed to expire pins: ", err.Error())
 				continue
 			}
+			totalRemoved += len(expired)
 			var formattedOutput string
 			for _, pin := range expired {
 				formattedOutput = fmt.Sprintf("%s\n%+v\n", formattedOutput, pin)
