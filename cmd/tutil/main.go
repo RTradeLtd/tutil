@@ -13,6 +13,7 @@ import (
 	"github.com/RTradeLtd/config/v2"
 	"github.com/RTradeLtd/database/v2"
 	"github.com/RTradeLtd/database/v2/models"
+	useremailmigration "github.com/RTradeLtd/tutil/migrations/user"
 	"github.com/RTradeLtd/tutil/pin"
 	"github.com/jinzhu/gorm"
 )
@@ -101,6 +102,27 @@ func newDB(cfg *config.TemporalConfig, noSSL bool) (*gorm.DB, error) {
 }
 
 var commands = map[string]cmd.Cmd{
+	"migrations": {
+		Blurb:         "manage complex database migrations",
+		ChildRequired: true,
+		Children: map[string]cmd.Cmd{
+			"unverified-user-migration": {
+				Blurb: "verify all unverified user accounts for apr 17 migration",
+				Action: func(cfg config.TemporalConfig, flags map[string]string) {
+					db, err := newDB(&cfg, *dbNoSSL)
+					if err != nil {
+						log.Fatal(err)
+					}
+					userm := useremailmigration.NewUserMigration(db)
+					count, err := userm.VerifyUnverifiedUsers()
+					if err != nil {
+						log.Fatal(err)
+					}
+					log.Printf("verified %v users", count)
+				},
+			},
+		},
+	},
 	"reset": {
 		Blurb: "reset user account tier",
 		Action: func(cfg config.TemporalConfig, flags map[string]string) {
