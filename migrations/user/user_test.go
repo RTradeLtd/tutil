@@ -23,7 +23,7 @@ func testDBMigration(t *testing.T, db *gorm.DB) {
 }
 
 func TestUserMigration(t *testing.T) {
-	cfg, err := config.LoadConfig("../testenv/config.json")
+	cfg, err := config.LoadConfig("../../testenv/config.json")
 	if err != nil {
 		t.Fatal(err)
 	}
