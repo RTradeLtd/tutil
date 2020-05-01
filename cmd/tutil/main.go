@@ -146,7 +146,16 @@ var commands = map[string]cmd.Cmd{
 		Blurb:       "manually remove a pin",
 		Description: "manually remove a pin and refund the storage cost",
 		Action: func(cfg config.TemporalConfig, flags map[string]string) {
-
+			if *user == "" {
+				log.Fatal("user flag not specified")
+			}
+			db, err := newDB(&cfg, *dbNoSSL)
+			if err != nil {
+				log.Fatal(err)
+			}
+			if err := models.NewUploadManager(db).RemovePin(*user, *pinToRemove, "public"); err != nil {
+				log.Fatal(err)
+			}
 		},
 	},
 	"pin-expire-service": {
