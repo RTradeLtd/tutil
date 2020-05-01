@@ -206,3 +206,11 @@ func (u *Util) PinExpirationService(ctx context.Context, frequency time.Duration
 		}
 	}
 }
+
+// RemoveAndRefund is used to remove a pin and partially refund
+func (u *Util) RemoveAndRefund(username, hash string) error {
+	if hash == "" {
+		return nil
+	}
+	return u.UP.RemovePin(username, hash, "public")
+}

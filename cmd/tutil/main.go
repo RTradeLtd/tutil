@@ -47,6 +47,8 @@ var (
 
 	notifyDays      *int
 	expireFrequency *time.Duration
+
+	pinToRemove *string
 )
 
 func baseFlagSet() *flag.FlagSet {
@@ -88,6 +90,7 @@ func baseFlagSet() *flag.FlagSet {
 	)
 	expireFrequency = flag.Duration("pin.expire.frequency", time.Hour, "enables controlling the frequency of pin expiration")
 	notifyDays = f.Int("notify.days", 7, "the number of days before we will warn about an expired pin")
+	pinToRemove = f.String("pin.to.remove", "", "the pin we want to remove")
 	return f
 }
 
@@ -137,6 +140,13 @@ var commands = map[string]cmd.Cmd{
 			if err := usage.UpdateTier(*user, models.Free); err != nil {
 				log.Fatal(err)
 			}
+		},
+	},
+	"pin-remove": {
+		Blurb:       "manually remove a pin",
+		Description: "manually remove a pin and refund the storage cost",
+		Action: func(cfg config.TemporalConfig, flags map[string]string) {
+
 		},
 	},
 	"pin-expire-service": {
