@@ -128,6 +128,54 @@ func Test_GetExpiredPins(t *testing.T) {
 	}
 }
 
+func TestPinRemoval(t *testing.T) {
+	// load configuration
+	cfg, err := config.LoadConfig("../testenv/config.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// open db
+	db, err := openDatabaseConnection(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	usageManager := models.NewUsageManager(db)
+	// initialize our pin utility client
+	util, err := NewPinUtil(db, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// setup first test user
+	user1, err := util.UM.NewUserAccount(
+		"testuser1",
+		"password123",
+		"testuser1@example.org",
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer util.UM.DB.Unscoped().Delete(user1)
+	usage1, err := usageManager.FindByUserName("testuser1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer usageManager.DB.Unscoped().Delete(usage1)
+	// setup test upload 1
+	upload1, err := util.UP.NewUpload(testCID, "file", models.UploadOptions{
+		NetworkName:      "public",
+		Username:         "testuser1",
+		HoldTimeInMonths: 1,
+		Encrypted:        false,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer util.UP.DB.Unscoped().Delete(upload1)
+	if err := util.RemoveAndRefund("testuser", testCID); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestPin(t *testing.T) {
 	// load configuration
 	cfg, err := config.LoadConfig("../testenv/config.json")
