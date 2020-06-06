@@ -75,7 +75,7 @@ func TestUserDelete(t *testing.T) {
 		defer db.Unscoped().Delete(up)
 	}
 	if up, err := manager.up.NewUpload("testhash2", "file", models.UploadOptions{
-		Username:         username2,
+		Username:         username1,
 		NetworkName:      "public",
 		HoldTimeInMonths: 10,
 	}); err != nil {
