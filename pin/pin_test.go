@@ -171,7 +171,7 @@ func TestPinRemoval(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer util.UP.DB.Unscoped().Delete(upload1)
-	if err := util.RemoveAndRefund("testuser", testCID); err != nil {
+	if err := util.RemoveAndRefund("testuser1", testCID); err != nil {
 		t.Fatal(err)
 	}
 }
