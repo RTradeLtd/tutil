@@ -15,6 +15,7 @@ import (
 	"github.com/RTradeLtd/database/v2/models"
 	useremailmigration "github.com/RTradeLtd/tutil/migrations/user"
 	"github.com/RTradeLtd/tutil/pin"
+	usermgmt "github.com/RTradeLtd/tutil/user"
 	"github.com/jinzhu/gorm"
 )
 
@@ -105,6 +106,19 @@ func newDB(cfg *config.TemporalConfig, noSSL bool) (*gorm.DB, error) {
 }
 
 var commands = map[string]cmd.Cmd{
+	"delete-user-data": {
+		Blurb: "delete user data for gdpr compliance",
+		Action: func(cfg config.TemporalConfig, flags map[string]string) {
+			db, err := newDB(&cfg, *dbNoSSL)
+			if err != nil {
+				log.Fatal(err)
+			}
+			manager := usermgmt.NewUserManager(db)
+			if err := manager.Delete(*user); err != nil {
+				log.Fatal(err)
+			}
+		},
+	},
 	"migrations": {
 		Blurb:         "manage complex database migrations",
 		ChildRequired: true,
